@@ -1,5 +1,5 @@
 # Metin2-SendInput
-Sendint Input to Metin2 with C# (Simulate key press, works on everything... I guess..)
+Sending Input to Metin2 with C# (Simulate key press, works on everything... I guess..)
 
 Hello, i didnt find anyone who made C# script where you can simulate keyboard press. 
 I made little bit of research in pinvoke.net (take me about 3-4 days) and created this dll.
