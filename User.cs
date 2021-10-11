@@ -11,19 +11,19 @@ namespace METININPUT
     {
      
         [DllImport("user32.dll")]
-        public static extern int SetForegroundWindow(int int_11);
+        public static extern int SetForegroundWindow(int id);
 
         [DllImport("user32")]
-        public static extern int GetWindow(int int_11, int int_12);
+        public static extern int GetWindow(int id, int uCmd);
 
         [DllImport("user32")]
         public static extern int GetDesktopWindow();
 
         [DllImport("user32")]
-        public static extern int IsWindowVisible(int int_11);
+        public static extern int IsWindowVisible(int id);
 
         [DllImport("User32.Dll")]
-        public static extern void GetWindowText(int int_11, StringBuilder stringBuilder_0, int int_12);
+        public static extern void GetWindowText(int id, StringBuilder sBuilder, int sBuilderCapacity);
 
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
