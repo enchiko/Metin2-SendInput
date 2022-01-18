@@ -11,6 +11,7 @@ public class TJava {
     public String name;
     public boolean isAlive;
     public int Health;
+    public int Defense;
 
         public Player(String _name,boolean _isAlive, int _Health){
         this.name = _name;
