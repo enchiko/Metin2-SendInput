@@ -2,8 +2,9 @@ public class User{
 
      public static void main(String[] args){
         //DECLARE PLAYER
-     Player p = new Player("Mirek",true,100);
-
+      Player p = new Player("Mirek",true,100);
+      p.isAlive = false;
+      
        
        
     }
