@@ -1,8 +1,10 @@
 public class User{
 
      public static void main(String[] args){
-      Player p = new Player("Mirek",true,100);
-       s ;
+        //DECLARE PLAYER
+     Player p = new Player("Mirek",true,100);
+
+       
        
     }
 
