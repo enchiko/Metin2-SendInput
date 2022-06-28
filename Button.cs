@@ -1,29 +1,40 @@
-﻿using System;
+using System;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Windows;
 
-namespace EButton
+namespace HACK
 {
     public class Button
     {
-        //ENCHIKO BUTTON DLL
+        //ENCHIKO BUTTON DLL 
+
+        #region Keyboard
+
+        [DllImport("user32.dll")]
+        internal static extern uint SendInput(uint nInputs, [MarshalAs(UnmanagedType.LPArray)] [In] Input[] inputs, int size);
 
         /// <summary>
         /// Simulate key press. Dont forget to activate and deactivate specific window
+        /// 
         /// </summary>
         /// <param name="btn">use EButton.Button.BT7 or use short value example: (short)57 </param>
-        public void PressKey(BT7 btn)
+        public static void PressKey(BT7 btn)
         {
-            Input[] array = new Input[4];
+            //Array of 2 bcs one : keyDown -> two : keyUp
+            Input[] array = new Input[2];
             Input input = default(Input);
             input.type = 1U;
             input.i_union.keyboardinput.wVk = (BT6)0;
             input.i_union.keyboardinput.time = 0;
-            input.i_union.keyboardinput.dwExtraInfo = (UIntPtr)0UL;
-            input.i_union.keyboardinput.dwFlags = BT5.SCANCODE;
+            input.i_union.keyboardinput.dwExtraInfo = (UIntPtr)0UL;         
+            input.i_union.keyboardinput.dwFlags = (BT5.KEYDOWN | BT5.SCANCODE);
             input.i_union.keyboardinput.wScan = btn;
             array[0] = input;
-            SendInput(1U, array, Input.Size);
+            // if METIN2 SPACE has some problems use without key up ->  input.i_union.keyboardinput.dwFlags = BT5.SCANCODE;
+            // but first make sure, that SPACE is pressed as last before window switch to lock SPACE.
             input.i_union.keyboardinput.dwFlags = (BT5.KEYUP | BT5.SCANCODE);
+            array[1] = input;
             SendInput(1U, array, Input.Size);
         }
 
@@ -31,25 +42,137 @@ namespace EButton
         /// Simulate key press. Dont forget to activate and deactivate specific window 
         /// </summary>
         /// <param name="btn">use EButton.Button.BT7 or use short value example: (short)57 </param>
-        public void PressKey(short btn)
+        public static void PressKey(short btn)
         {
-            Input[] array = new Input[4];
+            //Array of 2 bcs one : keyDown -> two : keyUp
+            Input[] array = new Input[2];
             Input input = default(Input);
             input.type = 1U;
             input.i_union.keyboardinput.wVk = (BT6)0;
             input.i_union.keyboardinput.time = 0;
             input.i_union.keyboardinput.dwExtraInfo = (UIntPtr)0UL;
-            input.i_union.keyboardinput.dwFlags = BT5.SCANCODE;
+            input.i_union.keyboardinput.dwFlags = (BT5.KEYDOWN | BT5.SCANCODE);
             input.i_union.keyboardinput.wScan = (BT7)btn;
             array[0] = input;
-            SendInput(1U, array, Input.Size);
             input.i_union.keyboardinput.dwFlags = (BT5.KEYUP | BT5.SCANCODE);
+            array[1] = input;
             SendInput(1U, array, Input.Size);
         }
 
-        [DllImport("user32.dll")]
-        internal static extern uint SendInput(uint nInputs, [MarshalAs(UnmanagedType.LPArray)] [In] Input[] inputs, int size);
+        #endregion
 
+        #region Mouse
+        // U can also use SetCursorPosition
+        public static void MouseMove(int positionX, int positionY, int maxX = 1920, int maxY = 1080)
+        {
+            // only one input we want to put inside this Input[] which is move mouse
+            Input[] i = new Input[1];
+            i[0] = new Input();
+            i[0].type = 0;
+            i[0].i_union.mouseinput.dx = NormalizePosition(positionX, maxX);
+            i[0].i_union.mouseinput.dy = NormalizePosition(positionY, maxY);
+            i[0].i_union.mouseinput.dwFlags = MOUSEINPUT.ABSOLUTE | MOUSEINPUT.MOVE;
+
+            uint result = SendInput(1, i, Marshal.SizeOf(i[0]));
+            if (result == 0)
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+
+        // U can also use SetCursorPosition
+        public static void MouseMove(Point point, int maxX = 1920, int maxY = 1080)
+        {
+            // only one input we want to put inside this Input[] which is move mouse
+            Input[] i = new Input[1];
+            i[0] = new Input();
+            i[0].type = 0;
+            i[0].i_union.mouseinput.dx = NormalizePosition((int)point.X, maxX);
+            i[0].i_union.mouseinput.dy = NormalizePosition((int)point.Y, maxY);
+            i[0].i_union.mouseinput.dwFlags = MOUSEINPUT.ABSOLUTE | MOUSEINPUT.MOVE;
+
+            uint result = SendInput(1, i, Marshal.SizeOf(i[0]));
+            if (result == 0)
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+
+        public static void MouseClick(MOUSEINPUT input)
+        {
+            // only one input we want to put inside this Input[] which is our input (ex : LEFT UP, LEFT DOWN ...)
+            // I didn't make 
+            Input[] i = new Input[1];
+            i[0] = new Input();
+            i[0].type = 0;
+            i[0].i_union.mouseinput.dwFlags = input;
+
+            uint result = SendInput(1, i, Marshal.SizeOf(i[0]));
+            if (result == 0)
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+
+
+        // Didn't test it yet
+        public static void MouseClick(MOUSEINPUT down, MOUSEINPUT up)
+        {
+            Input[] i = new Input[2];
+            i[0] = new Input();
+            i[0].type = 0;
+            i[0].i_union.mouseinput.dwFlags = down;
+
+            i[1] = new Input();
+            i[1].type = 0;
+            i[1].i_union.mouseinput.dwFlags = up;
+
+            uint result = SendInput(2, i, Marshal.SizeOf(i[0]));
+            if (result == 0)
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+
+        private static int NormalizePosition(int coord, int width_or_height)
+        {
+            return ((65536 * coord) / width_or_height) + 1;
+        }
+
+        #endregion
+
+        #region Utils
+
+        /// <summary>
+        /// Struct representing a point.
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public struct POINT
+        {
+            public int X;
+            public int Y;
+
+            public static implicit operator Point(POINT point)
+            {
+                return new Point(point.X, point.Y);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the cursor's position, in screen coordinates.
+        /// </summary>
+        /// <see>See MSDN documentation for further information.</see>
+        [DllImport("user32.dll")]
+        public static extern bool GetCursorPos(out POINT lpPoint);
+
+        [DllImport("User32.dll")]
+        public static extern bool SetCursorPos(int x, int y);
+
+        public static Point GetCursorPosition()
+        {
+            POINT lpPoint;
+            GetCursorPos(out lpPoint);
+            // NOTE: If you need error handling
+            // bool success = GetCursorPos(out lpPoint);
+            // if (!success)
+
+            return lpPoint;
+        }
+        #endregion
+
+        #region Struct
 
         public struct Input
         {
@@ -64,6 +187,7 @@ namespace EButton
             public uint type;
             public InputUnion i_union;
         }
+
 
         [StructLayout(LayoutKind.Explicit)]
         public struct InputUnion
@@ -84,12 +208,12 @@ namespace EButton
 
         public struct MouseInput
         {
-            internal int int_0;
-            internal int int_1;
-            internal BT3 btn3_0;
-            internal BT4 btn4_0;
-            internal uint uint_0;
-            internal UIntPtr uintptr_0;
+            internal int dx;
+            internal int dy;
+            internal BT3 mouseData;
+            internal MOUSEINPUT dwFlags;
+            internal uint time;
+            internal UIntPtr dwExtraInfo;
         }
 
         public struct KeyboardInput
@@ -114,6 +238,10 @@ namespace EButton
             internal short short_1;
         }
 
+
+        #endregion
+
+        #region Enums
         public enum BT2
         {
             // 04000126 RID: 294
@@ -131,7 +259,7 @@ namespace EButton
         }
 
         [Flags]
-        public enum BT4 : uint
+        public enum MOUSEINPUT : uint
         {
             ABSOLUTE = 32768U,
             HWHEEL = 4096U,
@@ -152,6 +280,7 @@ namespace EButton
         [Flags]
         public enum BT5 : uint
         {
+            KEYDOWN = 0U,
             EXTENDEDKEY = 1U,
             KEYUP = 2U,
             SCANCODE = 8U,
@@ -853,5 +982,7 @@ namespace EButton
             // 040002A9 RID: 681
             OEM_CLEAR = 0
         }
+        #endregion
     }
+
 }
