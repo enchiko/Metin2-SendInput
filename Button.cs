@@ -97,7 +97,6 @@ namespace HACK
         public static void MouseClick(MOUSEINPUT input)
         {
             // only one input we want to put inside this Input[] which is our input (ex : LEFT UP, LEFT DOWN ...)
-            // I didn't make 
             Input[] i = new Input[1];
             i[0] = new Input();
             i[0].type = 0;
@@ -110,7 +109,7 @@ namespace HACK
 
 
         // Didn't test it yet
-        public static void MouseClick(MOUSEINPUT down, MOUSEINPUT up)
+        public static void MouseClick(MOUSEINPUT down = MOUSEINPUT.LEFTDOWN, MOUSEINPUT up = MOUSEINPUT.LEFTUP)
         {
             Input[] i = new Input[2];
             i[0] = new Input();
